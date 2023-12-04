@@ -1,0 +1,73 @@
+{
+    "descriptions": [
+		{
+        "dataType": "func",
+        "modalityLabel": "bold",
+        "customLabels": "task-rest",
+        "criteria": {
+            "SeriesDescription": "*rest*",
+            "SidecarFilename": "*rest*",
+			"MultibandAccelerationFactor": 8
+            }
+        },
+        {
+        "dataType": "func",
+        "modalityLabel": "bold",
+        "customLabels": "taskthampsart",
+        "criteria": {
+            "SeriesDescription": "*sart*",
+            "SidecarFilename": "*sart*",
+			"MultibandAccelerationFactor": 8
+            }
+        },
+        {
+        "dataType": "func",
+        "modalityLabel": "bold",
+        "customLabels": "taskthamp2back",
+        "criteria": {
+            "SeriesDescription": "*2back*",
+            "SidecarFilename": "*2back*",
+			"MultibandAccelerationFactor": 8
+            }
+        },
+	{
+        "dataType": "dwi",
+        "modalityLabel": "dwi",
+        "criteria": {
+            "SeriesDescription": "*dwi*",
+            "SidecarFilename": "*dwi*",
+			"SequenceName": "ep_b0"
+            }
+	},
+        {
+        "dataType": "fmap",
+        "modalityLabel": "epi",
+        "customLabels": "dir-PA",
+        "criteria": {
+			"PhaseEncodingDirection": "j",
+        	"SeriesDescription": "fmap*",
+			"SidecarFilename": "*fmap*"
+            },
+        "intendedFor": 0
+        },
+        {
+        "dataType": "fmap",
+        "modalityLabel": "epi",
+        "customLabels": "dir-AP",
+        "criteria": {
+			"PhaseEncodingDirection": "j-",
+        	"SeriesDescription": "fmap*",
+			"SidecarFilename": "*fmap*"
+            },
+        "intendedFor": 0
+        },
+        {
+        "dataType": "anat",
+        "modalityLabel": "T1w",
+        "criteria": {
+            "SeriesDescription": "*T1w*",
+            "SidecarFilename": "*T1w*"
+            }
+        }
+    ]
+}
