@@ -1,0 +1,105 @@
+## Pre-processing through fMRIprep
+
+1. In DiscoveryOOD, open the work/mindlab/NUBIC/THAMP_Study folder
+
+
+2. Check data for duplicates (work/mindlab/NUBIC/THAMP_Study/fmriprep_preproc/code)
+- Change the directory & output for all py code files: 
+  - Define the top-level directory path (top_level_directory = '/work/mindlab/NUBIC/THAMP_Study/dicom_to_run')
+  - Define the log file path (log_file_path = '/work/mindlab/NUBIC/THAMP_Study/dicom_cleanup.log')
+
+In terminal, while in the code folder, run:
+	srun --pty /bin/bash
+	module load anaconda3/2022.05
+
+- Check functional maps:
+	python /work/mindlab/NUBIC/THAMP_Study/fmriprep_preproc/code/check_fmap.py
+
+- Clean anatomical files:
+	python /work/mindlab/NUBIC/THAMP_Study/fmriprep_preproc/code/clean_anat.py
+
+- Check functional files (sart, 2back, rest):
+  	python /work/mindlab/NUBIC/THAMP_Study/fmriprep_preproc/code/check_sartfunc.py
+  	python /work/mindlab/NUBIC/THAMP_Study/fmriprep_preproc/code/check_2backfunc.py
+  	python /work/mindlab/NUBIC/THAMP_Study/fmriprep_preproc/code/check_restfunc.py
+
+3. Pre-Dicom to Bids Conversion
+- Check that each particpant folder is correct in the directory /work/mindlab/NUBIC/THAMP_Study/dicom/Thamp_YYMMDDFLLL/Loui_Laats_1031_Thamp-1. Each participant should have the following:
+	- 6 field map folders (fmaps); there should be 3 folders with _dirPA_ and 3 folders with _dirAP_
+	- 8 functional folders (funcs; taskrest, tasktestVol, taskthamp2back, taskthampsart); each individual task should have 2 respective folders
+- Check for duplicates
+	- Check number at the end of the folder
+	- This number indicates the sequence order of scans
+	- If there is a duplicate, check both folders to see if one is empty/blank
+	- Remove any blank folders and mark which participants had duplicates
+
+
+4. Dicom to Bids Conversion
+- Change wang.jinyu2 in line 29 of /work/mindlab/NUBIC/THAMP_Study/BIDS/dcm2bids_slurm.sh to the data (updated username/data path)
+- Ensure that the source reads "source activate my_dcm2bids_env"
+- Ensure that the dicom directory = /work/mindlab/NUBIC/THAMP_Study/dicom_to_run
+- Run in terminal:
+  	cd /work/mindlab/NUBIC/THAMP_Study/BIDS
+  	sbatch dcm2bids_slurm.sh
+
+
+5. Removing the prefix: bids:sub-xxxxxxx
+In terminal, again while in the code folder, before running python, run:
+	srun --pty /bin/bash
+	module load anaconda3/2022.05
+  python /work/mindlab/NUBIC/THAMP_Study/fmriprep_preproc/code/update_intendedfor.py
+- Ensure that the base directory = /work/mindlab/NUBIC/THAMP_Study/BIDS
+
+
+6. Batch Run fMRIprep
+After Python, in terminal run:
+	cd /work/mindlab/NUBIC/THAMP_Study/fmriprep_preproc
+	sbatch fmriprep_run_parallel.sh
+- All participants should now have a unique folder in the directory /work/mindlab/NUBIC/THAMP_Study/BIDS/derivatives/fmriprep
+- Each folder should contain 4 sub-folders (anat, figures, func, log)
+
+## Pre 1st level anaylsis prep
+
+1. In DiscoveryOOD, open the work/mindlab/NUBIC/THAMP_Study/BIDS/derivatives/fmriprep folder
+
+
+2. Select a participant folder (sub-YYMMDDFLLL) and open their "func" folder
+
+
+3. Within this folder, open the terminal and run:
+	gunzip *.nii.gz
+- This will unzip all functional task files including all resting state tasks and both behavioral tasks
+
+
+4. Open the directory /work/mindlab/Projects/THAMP/fMRIprepped
+- This contains all participant data that has been through 1st and 2nd level analysis
+- Each participant should have a unique folder (YYMMDDFLLL_1lvl) with 2 sub folders (slices and spm)
+- The Slices folder should contain 2 sub folders (WM and SART) which respectively contain the sliced (sub), realigned (rsub), and smoothed (srsub) images
+	- Each participant should have 768 sliced files after loading into SPM
+	- After realigning and smoothing, each participant should have 2304 files (768 sub, 768 rsub, and 768 srsub)
+- The SPM folder should contain the SPM.mat file
+	- Each contrast is also noted in this folder with the contrasts being set-up as so:
+		con_0001.nii = SART mod>unmod
+		con_0002.nii = 2-BACK mod>unmod
+		con_0003.nii = SART>2-BACK
+		con_0004.nii = mod>unmod
+		con_0005.nii = mod
+		con_0006.nii = unmod
+		con_0007.nii = unmod>mod
+		con_0008.nii = 2-BACK>SART
+	- The beta files should correspond to the contrasts designed in the 1st level analysis
+
+
+## 1st Level Analysis
+
+1. In DiscoveryOOD, open the work/mindlab/NUBIC/THAMP_Study/BIDS/derivatives/fmriprep folder
+
+2. Also in DiscoveryOOD, start a MATLAB session
+- For the paramters, I would give as much time as needed depending on your intended session length, 6-8 GPUs, and 3-6 GB of memory
+- If you have issues opening or loading things, you can try to increase the number of GPUs or GBs to see if that helps the speed
+
+3. Once in the MATLAB session:
+- Add a path to access the program SPM: addpath /'work/mindlab/Programs/spm12'/
+- To open SPM, type: spm fmri; it may take a moment for the program to open
+- Once opened, open the batch editor for 4D —> 3D (in the util. subfolder)
+
