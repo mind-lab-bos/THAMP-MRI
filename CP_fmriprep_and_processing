@@ -1,0 +1,45 @@
+## Pre-processing through fMRIprep
+
+
+1. In DiscoveryOOD, open the work/mindlab/NUBIC/THAMP_Study folder
+
+
+2. Check data for duplicates (work/mindlab/NUBIC/THAMP_Study/fmriprep_preproc/code)
+- Change the directory & output for all py code files: 
+  - Define the top-level directory path (top_level_directory = '/work/mindlab/NUBIC/THAMP_Study/dicom_to_run')
+  - Define the log file path (log_file_path = '/work/mindlab/NUBIC/THAMP_Study/dicom_cleanup.log')
+
+In terminal, while in the code folder, run:
+srun --pty /bin/bash
+module load anaconda3/2022.05
+
+- Check functional maps: python /work/mindlab/NUBIC/THAMP_Study/fmriprep_preproc/code/check_fmap.py
+
+- Clean anatomical files: python /work/mindlab/NUBIC/THAMP_Study/fmriprep_preproc/code/clean_anat.py
+
+- Check functional files (sart, 2back, rest):
+  python /work/mindlab/NUBIC/THAMP_Study/fmriprep_preproc/code/check_sartfunc.py
+  python /work/mindlab/NUBIC/THAMP_Study/fmriprep_preproc/code/check_2backfunc.py
+  python /work/mindlab/NUBIC/THAMP_Study/fmriprep_preproc/code/check_restfunc.py
+
+
+3. Dicom to Bids Conversion
+- Change wang.jinyu2 in line 29 of /work/mindlab/NUBIC/THAMP_Study/BIDS/dcm2bids_slurm.sh to the data (username/data path)
+- Run in terminal:
+  cd /work/mindlab/NUBIC/THAMP_Study/BIDS
+  sbatch dcm2bids_slurm.sh
+
+
+4. Removing the prefix: bids:sub-xxxxxxx
+In terminal, again while in the code folder, before running python, run:
+	srun --pty /bin/bash
+	module load anaconda3/2022.05
+  python /work/mindlab/NUBIC/THAMP_Study/fmriprep_preproc/code/update_intendedfor.py
+- Ensure that the base directory = /work/mindlab/NUBIC/THAMP_Study/BIDS
+
+
+5. After Python, in terminal run:
+	cd /work/mindlab/NUBIC/THAMP_Study/fmriprep_preproc
+	sbatch fmriprep_run_parallel.sh
+- All participants should now have a unique folder in the directory /work/mindlab/NUBIC/THAMP_Study/BIDS/derivatives/fmriprep
+- Each folder should contain 4 sub-folders (anat, figures, func, log)
