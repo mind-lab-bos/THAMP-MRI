@@ -120,6 +120,7 @@ After Python, in terminal run:
 - Double click the "Data" tab to add a session
 - Then, add another session so there are 2 in total
 - In the first session, add all of the files in the /work/mindlab/Projects/THAMP/fMRIprepped/YYMMDDFLLL_1lvl/slices/SART folder
+	- To select all files, right click the folder, and click "select all"
 - Then, in the second session, add all of the files in the /work/mindlab/Projects/THAMP/fMRIprepped/YYMMDDFLLL_1lvl/slices/WM folder
 - Both sessions should individually have 768 files included in the session
 	- If for some reason there are not 768 files, you can try to re-do the 4D to 3D conversion or you can run that participant through the fMRIprep pipeline again
@@ -134,5 +135,70 @@ After Python, in terminal run:
 	- This means that each task folder will have 768 original 4D to 3D slices, 768 realigned images, and 768 realigned and smoothed images
 	- For the 1st and 2nd level analysis, we will use the realigned and smoothed images; all of these files MUST begin with srsub not rsub or sub
 
+
 7. 1st Level Analysis
-- 
+- Once the data has been sliced, realigned, and smoothed, it is now time to put this through the 1st level analysis!
+1. fMRI Model Specification
+- To determine how to set-up each participant's 1st level analysis, check the runlog to see if they listened to the modulated or unmodulated music first
+	- There are seperate Matlab files on the GitHub labled "modfirst.mat" and "unmodfirst.mat" for this purpose
+	- Each session in the fMRI model specification (SART & 2-back) will have 2 conditions (mod & unmod)
+	- If the participant receieved modulated music first: the onset of the mod condition would be 1 and the duration would be 384 while the onset of the unmod condition would be 365 and the duration would be 384
+	- If the participant receieved unmodulated music first: the onset of the mod condition would be 385 and the duration would be 384 while the onset of the unmod condition would be 1 and the duration would be 384
+	- Whatever music condition was recieved first will be true for both sessions (i.e. if you got mod first for the SART task, you will also get mod first for the 2-back task)
+- Once the proper matlab file has been loaded into the SPM session, update the directory to /work/mindlab/Projects/THAMP/fMRIprepped/YYMMDDFLLL_1lvl/spm
+	- This is where the 1st level analysis SPM.mat file will save
+	- This folder will also contain any and all contrasts, images, or anything else created by the 1st level analysis
+- Despite the first music condition there are some consistent variables (ex. Units for Design = Scans, Interscan Interval = 0.475, Microtime Resolution - 16, Microtime Onset = 8)
+- Then, in Data & Design, in the 1st session, upload the participants SART files from the /work/mindlab/Projects/THAMP/fMRIprepped/YYMMDDFLLL_1lvl/slices/SART folder
+	- Regardless which task was completed first, ALWAYS include SART a the first session and 2-back as the second session (this will make all con_001 files = SART m>u regardless of task presentation, making 2nd level analysis much more simple)
+	- Make sure to ONLY select the srsub files and to select them in sequential order
+		- To help with this, type "srsub*" into the Filter textbox
+		- This will only show the realigned and smoothed files
+		- Then, right click the list to choose "select all"
+		- This will ensure that all 768 srsub files are uploaded in the correct order
+- Once the SART session files have been uploaded, upload the participants 2-back files from the /work/mindlab/Projects/THAMP/fMRIprepped/YYMMDDFLLL_1lvl/slices/WM folder
+	- As mentioned before, regardless which task was completed first, ALWAYS include SART a the first session and 2-back as the second session
+	- Also mentioned before, make sure to ONLY select the srsub files and to select them in sequential order
+- Once all SART and 2-back files have been properly uploaded into each session with the proper conditions and onset times, the rest of the 1st level analysis may be done
+
+2. Model Estimation
+- This module will determine the best way to model the images
+- For the "Select SPM.mat" section, click the "Dependency" button on the bottom right and make this dependent on fMRI Model Specification: SPM.mat file
+- This will estimate the model for the SPM.mat that is being output by the previous module
+
+3. Contrast Manager
+- Finally, this will determine the contrasts for the data
+- In this case, we will only use T-contasts
+- For the "Select SPM.mat" section, click the "Dependency" button on the bottom right and make this dependent on Model Estimation: SPM.mat file
+- This will determine contrasts for the SPM.mat that is being output by the previous 2 modules
+- There are 3 contrasts already in the matlab files
+	1. SART mod>unmod [1 -1 0 0]
+	2. 2-back mod>unmod [0 0 1 -1]
+	3. SART>2-back [1 1 -1 -1]
+- Once these contrasts are set up, the entire 1st level analysis (model specification, model estimation, contrast manager) can be run!
+
+4. Viewing the Data
+- In SPM, click the "Results" tab
+- Then, upload the SPM.mat file that is in the participant's SPM folder (/work/mindlab/Projects/THAMP/fMRIprepped/YYMMDDFLLL_1lvl/spm)
+- Once selected, the 3 main contrasts should come up and more contrasts can be added
+		con_0004 = mod>unmod [1 -1 1 -1]
+		con_0005 = mod [1 0 1 0]
+		con_0006 = unmod [0 1 0 1]
+		con_0007 = unmod>mod [-1 1 -1 1]
+		con_0008 = 2-back>SART [-1 -1 1 1]
+- Right click/select whichever contrast you would like to view first
+- For the "apply masking" choice select no
+- P Value adjustment can be made to 0.05 or 0.001 (unc) - 0.05 is the signifigance threshold, data should be passing this on the individual level
+- Extent threshold can be kept at 0
+- Now you can visualize this participant's brain data! To see it relating to an fMRI brain image you can overlay an existing template
+	- In the Display section of the results tab, click Overlay --> sections
+	- Put the directory as /work/mindlab/Programs/spm12/canonical
+	- Choose the single sub TI.nii file
+	- Now, you can visualize the participant's data with a canonical brain image
+
+## 2nd Level Analysis
+
+
+
+
+
