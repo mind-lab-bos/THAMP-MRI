@@ -101,5 +101,38 @@ After Python, in terminal run:
 3. Once in the MATLAB session:
 - Add a path to access the program SPM: addpath /'work/mindlab/Programs/spm12'/
 - To open SPM, type: spm fmri; it may take a moment for the program to open
-- Once opened, open the batch editor for 4D —> 3D (in the util. subfolder)
 
+4. 4D to 3D
+- Once SPM has opened, open the batch editor
+- In the toolbar, open the SPM folder --> Util. --> 4D to 3D File Conversion
+- Load 2 seperate 4D to 3D File Conversions for each task condition
+- Specify the 4D Volume for each conversion (double click)
+	- Ensure the directory is /work/mindlab/NUBIC/THAMP_Study/BIDS/derivatives/fmriprep
+	- For each participant, open their func folder within the /work/mindlab/NUBIC/THAMP_Study/BIDS/derivatives/fmriprep directory
+	- For SART, choose the file titled "sub-YYMMDDFLLL task-thampsart space-MNI152NLin2009cAsym_desc-preproc_bold.nii"
+	- For 2-back, choose the file titled "sub-YYMMDDFLLL task-thamp2back space-MNI152NLin2009cAsym_desc-preproc_bold.nii"
+- Before running this, make sure to put the output directory as /work/mindlab/Projects/THAMP/fMRIprepped/YYMMDDFLLL_1lvl/slices/task (meaning you save the SART 4D to 3D conversion in the slices/SART folder and the 2-back 4D to 3D converstion in the slices/WM folder)
+- If the 4D volume matches correct file for the correct participant and the output directory is for the correct slices folder for the correct participant, you can now run this batch editor
+
+5. Realigning
+- After the 4D to 3D conversion has completed, open another batch editor
+- In the toolbar, open the SPM folder --> Spatial --> Realign --> Realign: Estimate and Reslice
+- Double click the "Data" tab to add a session
+- Then, add another session so there are 2 in total
+- In the first session, add all of the files in the /work/mindlab/Projects/THAMP/fMRIprepped/YYMMDDFLLL_1lvl/slices/SART folder
+- Then, in the second session, add all of the files in the /work/mindlab/Projects/THAMP/fMRIprepped/YYMMDDFLLL_1lvl/slices/WM folder
+- Both sessions should individually have 768 files included in the session
+	- If for some reason there are not 768 files, you can try to re-do the 4D to 3D conversion or you can run that participant through the fMRIprep pipeline again
+- Keep all other estimation options the same (ex. Quality = 0.9, Separation = 4, Smoothing = 5)
+
+6. Smoothing
+- Once the realigning step is complete and ready to run, in the toolbar, open the SPM folder --> Spatial --> Smooth
+- When choosing the images to smooth, click the bottom right button that says "Dependency"
+- After clicking Dependency, choose the RESLICED images from both session 1 (SART) and session 2 (WM)
+- Once the correct images have been selected to smooth, you may run the realigning and smoothing batch editor
+- Please note that each task will have all 768 images realigned and then smoothed, all saved into the /work/mindlab/Projects/THAMP/fMRIprepped/YYMMDDFLLL_1lvl/slices/task folder
+	- This means that each task folder will have 768 original 4D to 3D slices, 768 realigned images, and 768 realigned and smoothed images
+	- For the 1st and 2nd level analysis, we will use the realigned and smoothed images; all of these files MUST begin with srsub not rsub or sub
+
+7. 1st Level Analysis
+- 
