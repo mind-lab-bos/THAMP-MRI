@@ -2,7 +2,6 @@
 
 1. In DiscoveryOOD, open the work/mindlab/NUBIC/THAMP_Study folder
 
-
 2. Check data for duplicates (work/mindlab/NUBIC/THAMP_Study/fmriprep_preproc/code)
 - Change the directory & output for all py code files: 
   - Define the top-level directory path (top_level_directory = '/work/mindlab/NUBIC/THAMP_Study/dicom_to_run')
@@ -33,7 +32,6 @@ In terminal, while in the code folder, run:
 	- If there is a duplicate, check both folders to see if one is empty/blank
 	- Remove any blank folders and mark which participants had duplicates
 
-
 4. Dicom to Bids Conversion
 - Change wang.jinyu2 in line 29 of /work/mindlab/NUBIC/THAMP_Study/BIDS/dcm2bids_slurm.sh to the data (updated username/data path)
 - Ensure that the source reads "source activate my_dcm2bids_env"
@@ -42,14 +40,12 @@ In terminal, while in the code folder, run:
   	cd /work/mindlab/NUBIC/THAMP_Study/BIDS
   	sbatch dcm2bids_slurm.sh
 
-
 5. Removing the prefix: bids:sub-xxxxxxx
 In terminal, again while in the code folder, before running python, run:
 	srun --pty /bin/bash
 	module load anaconda3/2022.05
   python /work/mindlab/NUBIC/THAMP_Study/fmriprep_preproc/code/update_intendedfor.py
 - Ensure that the base directory = /work/mindlab/NUBIC/THAMP_Study/BIDS
-
 
 6. Batch Run fMRIprep
 After Python, in terminal run:
@@ -58,18 +54,16 @@ After Python, in terminal run:
 - All participants should now have a unique folder in the directory /work/mindlab/NUBIC/THAMP_Study/BIDS/derivatives/fmriprep
 - Each folder should contain 4 sub-folders (anat, figures, func, log)
 
+
 ## Pre 1st level anaylsis prep
 
 1. In DiscoveryOOD, open the work/mindlab/NUBIC/THAMP_Study/BIDS/derivatives/fmriprep folder
 
-
 2. Select a participant folder (sub-YYMMDDFLLL) and open their "func" folder
-
 
 3. Within this folder, open the terminal and run:
 	gunzip *.nii.gz
 - This will unzip all functional task files including all resting state tasks and both behavioral tasks
-
 
 4. Open the directory /work/mindlab/Projects/THAMP/fMRIprepped
 - This contains all participant data that has been through 1st and 2nd level analysis
@@ -178,7 +172,7 @@ After Python, in terminal run:
 - Once these contrasts are set up, the entire 1st level analysis (model specification, model estimation, contrast manager) can be run!
 
 4. Viewing the Data
-- In SPM, click the "Results" tab
+- In the SPM GUI, click the "Results" tab
 - Then, upload the SPM.mat file that is in the participant's SPM folder (/work/mindlab/Projects/THAMP/fMRIprepped/YYMMDDFLLL_1lvl/spm)
 - Once selected, the 3 main contrasts should come up and more contrasts can be added
 		con_0004 = mod>unmod [1 -1 1 -1]
@@ -196,9 +190,50 @@ After Python, in terminal run:
 	- Choose the single sub TI.nii file
 	- Now, you can visualize the participant's data with a canonical brain image
 
+
 ## 2nd Level Analysis
 
+1. In DiscoveryOOD, start a MATLAB session
+- For the paramters, I would give as much time as needed depending on your intended session length, 6-8 GPUs, and 3-6 GB of memory
+- If you have issues opening or loading things, you can try to increase the number of GPUs or GBs to see if that helps the speed
 
+2. Once in the MATLAB session:
+- Add a path to access the program SPM: addpath /'work/mindlab/Programs/spm12'/
+- To open SPM, type: spm fmri; it may take a moment for the program to open
 
-
-
+3. 2nd Level Analysis
+- Within the SPM GUI, open the "Specify 2nd Level"
+- The Directory will be where this SPM.mat file is saved. Save these contrasts into unique folders within the /work/mindlab/Projects/THAMP/fMRIprepped/2nd_lvl_analyses/all 40 participants directory
+	- Each contrast has it's own unique folder (ex. sart mod>unmod, wm mod>unmod, mod>unmod)
+	- Within each folder, there should be an SPM folder that contains the SPM.mat file for the contrast
+- Once the directory has been determined, change the design per the requirements (i.e. One-Sample T-Test for mod effect, Two-Sample T-Test for ASRS scores)
+- In the Scans tab, select all contrast files saved in each participant's SPM folder
+	- Within the directory /work/mindlab/Projects/THAMP/fMRIprepped, each participant has their SPM.mat file saved out as well as each contrast that has been done
+	- For these scans, you want to select the con file that corresponds to that specific contrast
+		con_0001.nii = SART mod>unmod
+		con_0002.nii = 2-BACK mod>unmod
+		con_0003.nii = SART>2-BACK
+		con_0004.nii = mod>unmod
+		con_0005.nii = mod
+		con_0006.nii = unmod
+		con_0007.nii = unmod>mod
+		con_0008.nii = 2-BACK>SART
+	- Select all con_000X files from each participant
+- Once the design looks correct, you can run the module
+- After that, in the SPM GUI, click the "Estimate" tab
+- For the SPM.mat to estimate, locate the SPM.mat contrast file you just created in it's respective contrast folder (/work/mindlab/Projects/THAMP/fMRIprepped/2nd_lvl_analyses/all 40 participants/CONTRAST_FOLDER/spm)
+- Once loaded, run that module
+- Finally, to view the contrast, in the SPM GUI, click the "Results" tab
+	- Load in whatever contrast you'd like to view by loading in the respective SPM.mat file
+	- To design the contrast matrix, simply type in "1"
+- Viewing the Data
+	- Right click/select whichever contrast you would like to view first
+	- For the "apply masking" choice select no
+	- P Value adjustment can be made to 0.05 or 0.001 (unc) - 0.05 is the signifigance threshold, data should be passing this on the individual level
+	- Extent threshold can be kept at 0
+	- Now you can visualize these participants brain data! To see it relating to an fMRI brain image you can overlay an existing template
+		- In the Display section of the results tab, click Overlay --> sections
+		- Put the directory as /work/mindlab/Programs/spm12/canonical
+		- Choose the single sub TI.nii file
+		- Now, you can visualize the participant's data with a canonical brain image
+- You can now design other 2nd level analyses including other covariates
