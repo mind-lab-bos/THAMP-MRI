@@ -5,3 +5,5 @@ The instructions for recruiting and running participants are located on the THAM
 Preprocessing and Analysis guide can be found in the THAMP Overview Document https://docs.google.com/document/d/1EL8839oqc8otykgAeb8aCeg1eMtUUXese7bMQRwbxTM/edit?usp=drivesdk
 
 Updated preprocessing guide, using fMRIprep to incorporate field maps, can be found here: https://github.com/mind-lab-bos/MBI_Project_MRI_Analysis/wiki/Fmriprep-preprocessing 
+
+The most up-to-date pre-processing and analyzing pipeline can be found here: https://github.com/mind-lab-bos/THAMP-MRI/blob/main/CP_MRI_pipeline
