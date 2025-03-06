@@ -1,0 +1,95 @@
+---
+title: "UPDATED_fMRI_sart"
+output: html_document
+date: "2025-02-26"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, read sart data}
+library(dplyr)
+# Read in the raw SART Data
+participantID <- "241016KDIE"
+filepath <- paste("/Users/corinnaparrish/Desktop/SART fmri/PRE-R/FOURTH 10/", participantID, "_sart_thamp_0.txt", sep="")
+raw.data <- read.csv(filepath, sep=" ", header=FALSE)
+```
+
+```{r, columns}
+library(stringr)
+colnames(raw.data)<- c("trial","stim","NA","status","RT","song") # Rename the columns
+raw.data$condition <- str_sub(raw.data$song, start = -7) 
+raw.data$condition <- ifelse(raw.data$condition=="05.mp3;", 'unmod',
+                         ifelse(raw.data$condition==".3.mp3;", 'mod', 'other')) # Add mod/unmod column
+raw.data <- raw.data %>% select(-c("NA")) # Drop NA Column
+raw.data$trial <- as.numeric(gsub(",", "", raw.data$trial)) # Clean trial names (drop ",")
+raw.data$song <- gsub(".mp3;", "", raw.data$song) # Clean song names (drop ".mp3;")
+# clean_data <- subset(raw.data, raw.data$stim!=0)
+clean_data <- raw.data %>% filter(stim!=0) # Only keep rows where Stim is not
+```
+
+```{r, status}
+# Determine SART Status
+clean_data$result <- ifelse(clean_data$status=="nogo" & clean_data$stim==3, 'correct rejection',
+                      ifelse(clean_data$status=="nogo" & clean_data$stim!=3, 'miss',
+                             ifelse(clean_data$status=="go" & clean_data$stim!=3, 'hit',
+                                    ifelse(clean_data$status=="go" & clean_data$stim==3, 'false alarm', 'other'))))
+```
+
+```{r, songs and IOIs}
+library(readxl)
+# Read in THAMP Runlog (that has the Song Library in the last sheet)
+song_library_path <- "/Users/corinnaparrish/Desktop/SART fmri/THAMP_runlog.xlsx"
+song_list <-read_excel(song_library_path, sheet="Sheet1", col_names = FALSE) 
+
+# Get song names from the 15th column of the song library
+songs<-as.matrix(song_list %>% select(15))
+
+# Go through all the songs in the song library and get their IOI
+songs_iois <- NULL
+for (song in songs){
+  split_string = unlist(strsplit(song, " ")) # Split the song name by spaces
+  if (length(split_string) > 1){ # only consider songs with full names (not just a number)
+    song_name = gsub(".mp3", "", split_string[2]) # get the song name from the 2nd split
+    ioi = gsub("[A-Za-z;]","", split_string[3]) # get the ioi from the 3rd split
+    # print(ioi)
+    new_song <- data.frame(cbind(song_name, ioi)) # create a new row for our data frame
+    colnames(new_song) <- c("song_name", "ioi")
+    songs_iois <- rbind(songs_iois, new_song) # append the new song to our data frame
+  }
+}
+
+# Create a function that takes in the name of the song (as a string) and outputs the IOI 
+#     by searching through the new data frame
+get_ioi <- function(song_name) as.numeric(songs_iois$ioi[songs_iois$song_name==song_name]) 
+
+# Create a new row in the clean_data by searching up the songs' iois
+clean_data$interval <- unlist(lapply(clean_data$song, get_ioi))
+```
+
+```{r, onsets}
+# Find MRI Onsets
+df <- data.frame(value = as.array(clean_data$interval))
+
+df$cumulative_sum <- NA
+df$cumulative_sum[1] <- 0
+df$value[1] <- 0
+
+
+df$value = as.numeric(df$value, options(digits = 12))
+
+for (i in 2:nrow(df)) {
+  df$cumulative_sum[i] <- sum(df$value[1:i]) / 475
+}
+
+df$cumulative_sum = as.numeric(df$cumulative_sum, options(digits = 16))
+df$cumulative_sum <- floor(df$cumulative_sum)
+clean_data$onset <- df$cumulative_sum
+```
+
+```{r, save clean data}
+# Save clean_data
+output_filepath <- paste('/Users/corinnaparrish/Desktop/SART fmri/POST-R-2/', participantID, "_output.csv", sep="")
+write.csv(clean_data, output_filepath)
+```
